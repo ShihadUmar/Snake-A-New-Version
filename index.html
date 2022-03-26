@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snake!</title>
+    <style>
+        @font-face {
+            font-family: Righteous;
+            src: url('./Righteous-Regular.ttf') format('truetype');
+        }
+        body {
+            background-color: #F5F5F5;
+            width: 100%;
+            height: 100%;
+            padding: 0;
+            margin: 0;
+            overflow: hidden;            
+        }
+        .canvas-container {
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        #canvas {
+            width: 100%;
+        }
+        @media (min-aspect-ratio: 16/9) {
+            #canvas {
+                width: calc(1600vh / 9);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="canvas-container">
+        <canvas id="canvas" width="4800" height="2700"></canvas>
+    </div>
+    <script>
+        const Pixel = new FontFace('Righteous',"url('./Righteous-Regular.ttf') format('truetype')");
+        Pixel.load().then(function() {
+            const ctx = document.getElementById('canvas').getContext('2d');
+            drawThumbnail();
+            function drawThumbnail() {    
+                ctx.textAlign = "center";
+                ctx.fillStyle = "#062C30";
+                ctx.font = '900px Righteous';
+                ctx.fillText("Snake!", 2400, 1000);
+                ctx.font = '300px Righteous';
+                ctx.fillText("A New Version!", 2400, 1300);
+                ctx.font = '200px Righteous';
+                ctx.fillText("- Touch Or Press Any Key To Start -", 2400, 2000);
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                ctx.lineWidth = 200;
+                ctx.strokeStyle = '#05595B'
+                ctx.moveTo(0, 200);
+                ctx.lineTo(800, 200);
+                ctx.lineTo(800, 1500);
+                ctx.lineTo(400, 1500);
+                ctx.lineTo(400, 2400);
+                ctx.lineTo(4400, 2400);
+                ctx.lineTo(4400, 1500);
+                ctx.lineTo(4000, 1500);
+                ctx.lineTo(4000, 200);
+                ctx.lineTo(4800, 200);
+                ctx.stroke();
+                ctx.fillStyle = "#E2D784";
+                ctx.font = '150px Righteous';
+                ctx.fillText("Powered By - HTML Canvas", 2400, 2450);
+            }
+        });
+    </script>
+</body>
+</html>

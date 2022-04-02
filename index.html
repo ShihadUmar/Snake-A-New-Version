@@ -11,6 +11,7 @@
             src: url('./Righteous-Regular.ttf') format('truetype');
         }
         body {
+            overscroll-behavior: contain;
             background-color: #F5F5F5;
             width: 100%;
             height: 100%;
@@ -35,14 +36,355 @@
     </style>
 </head>
 <body>
+    <!-- Container that Contains Canvas -->
     <div class="canvas-container">
+        <!-- Canvas to Display Game -->
         <canvas id="canvas" width="4800" height="2700"></canvas>
     </div>
     <script>
-        const Pixel = new FontFace('Righteous',"url('./Righteous-Regular.ttf') format('truetype')");
-        Pixel.load().then(function() {
+        //////////////////////////////
+        // Load Font :
+        const Righteous = new FontFace('Righteous',"url('./Righteous-Regular.ttf') format('truetype')");
+        Righteous.load().then(function() {
+            
+            //////////////////////////////
+            // Declare Global Variables :
             const ctx = document.getElementById('canvas').getContext('2d');
-            drawThumbnail();
+            let snake, food, direction, mouseTimer, score;
+            let startClick = true;
+            let clickLock = false;
+            let keyLock = false;
+            let isPaused = false;
+            let stop = true;
+            let pauseLock = true;
+            if (localStorage.highScore == undefined) {
+                localStorage.highScore = 0;
+            }
+            
+            //////////////////////////////
+            // main() :
+            function main() {
+                mainLoop = setInterval(() => {
+                    if (!isPaused) {
+                        let snakeClone = [];
+                        let newx, newy;
+                        if (direction == 'up') {
+                            newx = snake[0].x;
+                            newy = snake[0].y-1;
+                        } else if (direction == 'down') {
+                            newx = snake[0].x;
+                            newy = snake[0].y+1;
+                        } else if (direction == 'right') {
+                            newx = snake[0].x+1;
+                            newy = snake[0].y;
+                        } else if (direction == 'left') {
+                            newx = snake[0].x-1;
+                            newy = snake[0].y;
+                        }
+                        if(newx >= 29 || newx <= 1 || newy >= 15 || newy <= 2) {
+                            gameOver();
+                        }
+                        snake.forEach(elm => {
+                            if (newx == elm.x && newy == elm.y) {
+                                renderFood(snake, true);
+                                gameOver();
+                            }
+                        });
+                        snakeClone.push({x: newx, y: newy});
+                        snake.forEach(elm => {
+                            snakeClone.push(elm);
+                        });
+                        if (food.x == newx && food.y == newy) {
+                            score++;
+                            renderFood(snakeClone,true)
+                        } else {
+                            snakeClone.pop();
+                        }
+                        snake = snakeClone;
+                        ctx.clearRect(0, 0, 4800, 2700);
+                        renderGround();
+                        printScore(score, localStorage.highScore);
+                        renderSnake(snake);
+                        renderFood(snake);
+                        keyLock = false;
+                    }
+                }, 200);
+            }
+
+            //////////////////////////////
+            // gameOver() : 
+            function gameOver() {
+                if (score > localStorage.highScore) localStorage.highScore = score;
+                clearInterval(mainLoop);
+                clickLock = true;
+                pauseLock = true; 
+                setTimeout(() => {
+                    canvasEffect(1000, true, () => {
+                        createMessage('Game Over!', 'Press Space or Click to Start A New Game.');
+                    }, () => {
+                        startClick = true;
+                        clickLock = false;
+                    });
+                }, 500);
+            }
+
+            //////////////////////////////
+            // pauseGame() :
+            function pauseGame() {
+                isPaused = true;
+                canvasEffect(1000, true, () => {
+                    createMessage('Game Paused!', 'Press Space or Hold to Play.')
+                }, () => {
+                    pauseLock = false;
+                });
+            }
+
+            //////////////////////////////
+            // startGame() :
+            function startGame() {
+                score = 0;
+                snake = [{x: 14,y: 8}, {x: 13,y: 8}, {x: 12,y: 8}, {x: 11,y: 8}, {x: 10,y: 8}]
+                food = {x: 17, y: 8};
+                direction = 'right';
+                canvasEffect(1000, true, () => {
+                    renderGround();
+                    printScore(score, localStorage.highScore);
+                    renderSnake(snake);
+                    renderFood(snake);
+                }, () => {
+                    main();
+                    clickLock = false;
+                    pauseLock = false;
+                });
+            }
+
+            //////////////////////////////
+            // Start Controls :
+            canvasEffect(1000, true, drawThumbnail, () => {
+
+                //////////////////////////////
+                // Hold Events :
+                ([['touchstart', 'touchend'], ['mousedown', 'mouseup']]).forEach((elm) => {
+                    document.body.addEventListener(elm[0], () => {
+                        mouseTimer = setTimeout(() => {
+                            if (!pauseLock) {
+                                console.log(13123);
+                                pauseLock = true;
+                                if (isPaused) {
+                                    canvasEffect(1000, true, () => {
+                                        renderGround();
+                                        printScore(0,10);
+                                        renderSnake(snake);
+                                        renderFood(snake);
+                                    }, () => {
+                                        pauseLock = false;
+                                        isPaused = false;
+                                    });
+                                } else {
+                                    pauseGame();
+                                }
+                            }
+                        }, 500);
+                    });
+                    document.body.addEventListener(elm[1], () => {
+                        if (mouseTimer) clearTimeout(mouseTimer);
+                    });
+                })
+
+                //////////////////////////////
+                // Click Events :
+                document.body.addEventListener('click', () => {
+                    if (!clickLock) {
+                        clickLock = true;
+                        if (startClick) {
+                            startClick = false;
+                            startGame();
+                        } else{
+                            clickLock = false;
+                        }
+                    }
+                });
+
+                //////////////////////////////
+                // Key Events :
+                document.addEventListener('keydown', function(){
+                    if(!keyLock){
+                        keyLock = true;
+                        if(event.key == 'ArrowUp' || event.key == 'w'){
+                            if(direction != 'down'){
+                                direction = 'up';
+                            }
+                        }else if(event.key == 'ArrowDown' || event.key == 's'){
+                            if(direction != 'up'){
+                                direction = 'down';
+                            }
+                        }else if(event.key == 'ArrowRight' || event.key == 'd'){
+                            if(direction != 'left'){
+                                direction = 'right';
+                            }
+                        }else if(event.key == 'ArrowLeft' || event.key == 'a'){
+                            if(direction != 'right'){
+                                direction = 'left';
+                            }
+                        }
+                    }
+                    if(event.key == ' '){
+                        if (startClick) {
+                            startClick = false;
+                            startGame();
+                            
+                        } else if (!pauseLock){
+                            pauseLock = true;
+                            if (isPaused) {
+                                canvasEffect(1000, true, () => {
+                                    renderGround();
+                                    printScore(0,10);
+                                    renderSnake(snake);
+                                    renderFood(snake);
+                                }, () => {
+                                    pauseLock = false;
+                                    isPaused = false;
+                                });
+                            } else {
+                                pauseGame();
+                            }
+                        }
+                    }
+                });
+
+                //////////////////////////////
+                // Touch Events :
+                document.addEventListener('touchstart', function(evt) {
+                    const firstTouch = evt.touches[0];                                      
+                    xDown = firstTouch.clientX;                               
+                    yDown = firstTouch.clientY;                  
+                }, false);                                                
+                document.addEventListener('touchmove', function handleTouchMove(evt) {
+                    if (!xDown||!yDown||keyLock) {
+                        return;
+                    }
+                    let xUp = evt.touches[0].clientX;                                    
+                    let yUp = evt.touches[0].clientY;
+                    let xDiff = xDown - xUp;
+                    let yDiff = yDown - yUp;
+                    if ( Math.abs( xDiff ) > Math.abs( yDiff ) ) {
+                        if ( xDiff > 0 ) {
+                            if(direction != 'right'){
+                                direction = 'left';
+                            }
+                        } else {
+                            if(direction != 'left'){
+                                direction = 'right';
+                            }                   }                       
+                    } else {
+                        if ( yDiff > 0 ) {
+                            if(direction != 'down'){
+                                direction = 'up';
+                            }
+                        } else { 
+                            if(direction != 'up'){
+                                direction = 'down';
+                            }
+                        }                                                                 
+                    }
+                    console.log(direction)
+                    xDown = null;
+                    yDown = null;                                            
+                }, false);
+            });
+            
+            //////////////////////////////
+            // renderFood() :
+            function renderFood(snake, generate) {
+                if (generate) {
+                    food.x = Math.floor(Math.random() * 29) + 1;
+                    food.y = Math.floor(Math.random() * 14) + 2;
+                    snake.forEach(elm => {
+                        if (food.x == elm.x && food.y == elm.y) {
+                            renderFood(snake, true);
+                            return;
+                        }
+                    });
+                } else {
+                    ctx.strokeStyle = "#E2D784";
+                    ctx.moveTo((food.x+0.4)*156, (food.y+0.84)*157);
+                    ctx.beginPath();
+                    ctx.lineTo((food.x+0.4)*156, (food.y+0.84)*157);
+                    ctx.stroke();                    
+                }
+            }
+
+            //////////////////////////////
+            // renderSnake() :
+            function renderSnake(snake) {
+                ctx.strokeStyle = '#05595B'
+                ctx.moveTo(snake[0].x, snake[0].y);
+                ctx.beginPath();
+                snake.forEach(elm => {
+                    ctx.lineTo((elm.x+0.4)*156, (elm.y+0.84)*157);                    
+                });
+                ctx.stroke();
+            }
+
+            //////////////////////////////
+            // createMessage() :
+            function createMessage(head,body) {
+                ctx.textAlign = "center";
+                ctx.fillStyle = "#062C30";
+                ctx.font = '500px Righteous';
+                ctx.fillText(head, 2400, 1200);
+                ctx.font = '200px Righteous';
+                ctx.fillText(body, 2400, 1600);
+            }
+
+            //////////////////////////////
+            // cavasEffect() :
+            function canvasEffect(time, clear, callback, next) {
+                ctx.globalAlpha = 0;
+                let interval = setInterval(() => {
+                    ctx.globalAlpha += 0.02;
+                    if (clear) {
+                        ctx.fillStyle = "#F5F5F5";
+                        ctx.fillRect(0,0,4800,2700);
+                    }
+                    callback();
+                }, time/50);
+                setTimeout(() => {
+                    clearInterval(interval);
+                    ctx.globalAlpha = 1;
+                    if (typeof(next) == "function") next();
+                }, time);
+            }
+
+            //////////////////////////////
+            // renderGround() :
+            function renderGround() {
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                ctx.lineWidth = 120;
+                ctx.strokeStyle = '#062C30'
+                ctx.beginPath();
+                ctx.moveTo(60, 290);
+                ctx.lineTo(4740, 290);
+                ctx.lineTo(4740, 2640);
+                ctx.lineTo(60, 2640);
+                ctx.lineTo(60, 290);
+                ctx.stroke();
+            }
+
+            //////////////////////////////
+            // printScore() :
+            function printScore(score,highScore) {
+                ctx.textAlign = "left";
+                ctx.fillStyle = "#062C30";
+                ctx.font = '150px Righteous';
+                ctx.fillText(`Score: ${score}`, 100, 150);
+                ctx.textAlign = "right";
+                ctx.fillText(`High Score: ${highScore}`, 4700, 150);
+            }
+
+            //////////////////////////////
+            // drawThumbnail() :
             function drawThumbnail() {    
                 ctx.textAlign = "center";
                 ctx.fillStyle = "#062C30";
@@ -51,12 +393,13 @@
                 ctx.font = '300px Righteous';
                 ctx.fillText("A New Version!", 2400, 1300);
                 ctx.font = '200px Righteous';
-                ctx.fillText("- Touch Or Press Any Key To Start -", 2400, 2000);
+                ctx.fillText("- Click Or Press Space To Start -", 2400, 2000);
                 ctx.lineCap = 'round';
                 ctx.lineJoin = 'round';
-                ctx.lineWidth = 200;
+                ctx.lineWidth = 150;
                 ctx.strokeStyle = '#05595B'
-                ctx.moveTo(0, 200);
+                ctx.beginPath();
+                ctx.moveTo(200, 200);
                 ctx.lineTo(800, 200);
                 ctx.lineTo(800, 1500);
                 ctx.lineTo(400, 1500);
@@ -65,7 +408,7 @@
                 ctx.lineTo(4400, 1500);
                 ctx.lineTo(4000, 1500);
                 ctx.lineTo(4000, 200);
-                ctx.lineTo(4800, 200);
+                ctx.lineTo(4600, 200);
                 ctx.stroke();
                 ctx.fillStyle = "#E2D784";
                 ctx.font = '150px Righteous';

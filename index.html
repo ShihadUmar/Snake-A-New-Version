@@ -81,7 +81,7 @@
                             newx = snake[0].x-1;
                             newy = snake[0].y;
                         }
-                        if(newx >= 29 || newx <= 1 || newy >= 15 || newy <= 2) {
+                        if(newx > 29 || newx < 1 || newy > 15 || newy < 2) {
                             gameOver();
                         }
                         snake.forEach(elm => {
@@ -108,7 +108,7 @@
                         renderFood(snake);
                         keyLock = false;
                     }
-                }, 120);
+                }, 200);
             }
 
             //////////////////////////////

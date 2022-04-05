@@ -84,8 +84,8 @@
                         if(newx > 29 || newx < 1 || newy > 15 || newy < 2) {
                             gameOver();
                         }
-                        snake.forEach(elm => {
-                            if (newx == elm.x && newy == elm.y) {
+                        snake.forEach((elm, idx) => {
+                            if (newx == elm.x && newy == elm.y && idx+1 != snake.length) {
                                 renderFood(snake, true);
                                 gameOver();
                             }
@@ -352,6 +352,11 @@
                 setTimeout(() => {
                     clearInterval(interval);
                     ctx.globalAlpha = 1;
+                    if (clear) {
+                        ctx.fillStyle = "#F5F5F5";
+                        ctx.fillRect(0,0,4800,2700);
+                    }
+                    callback();
                     if (typeof(next) == "function") next();
                 }, time);
             }

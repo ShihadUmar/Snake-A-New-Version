@@ -164,11 +164,10 @@
 
                 //////////////////////////////
                 // Hold Events :
-                ([['touchstart', 'touchend'], ['mousedown', 'mouseup']]).forEach((elm) => {
+                ([['touchstart', 'touchend', 'touchmove'], ['mousedown', 'mouseup','mousemove']]).forEach((elm) => {
                     document.body.addEventListener(elm[0], () => {
                         mouseTimer = setTimeout(() => {
                             if (!pauseLock) {
-                                console.log(13123);
                                 pauseLock = true;
                                 if (isPaused) {
                                     canvasEffect(1000, true, () => {
@@ -187,6 +186,9 @@
                         }, 500);
                     });
                     document.body.addEventListener(elm[1], () => {
+                        if (mouseTimer) clearTimeout(mouseTimer);
+                    });
+                    document.body.addEventListener(elm[2], () => {
                         if (mouseTimer) clearTimeout(mouseTimer);
                     });
                 })

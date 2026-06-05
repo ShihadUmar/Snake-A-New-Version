@@ -1,3 +1,4 @@
 # Snake-A-New-Version
-Powered By - HTML Canvas
-## This Will Be Release Soon
+A refined version of my previous snake game. Made from scracth with the same principles using Javascript's native canvas api as experiment.
+
+*Note: this project is currently not maintained.*
